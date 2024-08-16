@@ -4,6 +4,11 @@ const fs = require("fs");
 const path = require("path");
 const { createTunnel } = require("tunnel-ssh");
 
+function getBackupDirectoryPath() {
+  const backupDirectory = process.env.BACKUP_DIRECTORY || "./backups";
+  return path.join(__dirname, backupDirectory);
+}
+
 async function createSSHTunnel() {
   if (process.env.SSH_ENABLED !== "1") {
     console.log(
@@ -71,7 +76,7 @@ function backupDatabase(baseUrl, databaseName) {
   return new Promise((resolve, reject) => {
     const url = `${baseUrl}/${databaseName}/_all_docs?include_docs=true`;
     const filePath = path.join(
-      process.env.BACKUP_DIRECTORY,
+      getBackupDirectoryPath(),
       `${databaseName}-${new Date().toISOString()}.json`
     );
     console.log(`Backing up ${databaseName} to ${filePath}`); // Debug-Ausgabe
@@ -92,14 +97,14 @@ function cleanupOldBackups() {
   const retentionPeriod = process.env.DATA_RETENTION_DAYS * 24 * 60 * 60 * 1000;
   const now = Date.now();
 
-  fs.readdir(process.env.BACKUP_DIRECTORY, (err, files) => {
+  fs.readdir(getBackupDirectoryPath(), (err, files) => {
     if (err) {
       console.error("Failed to read backup directory:", err);
       return;
     }
 
     files.forEach((file) => {
-      const filePath = path.join(process.env.BACKUP_DIRECTORY, file);
+      const filePath = getBackupDirectoryPath();
       fs.stat(filePath, (err, stats) => {
         if (err) {
           console.error("Failed to retrieve file info:", err);
@@ -121,8 +126,8 @@ function cleanupOldBackups() {
 }
 
 async function backupAllDatabases() {
-  if (!fs.existsSync(process.env.BACKUP_DIRECTORY)) {
-    fs.mkdirSync(process.env.BACKUP_DIRECTORY, { recursive: true });
+  if (!fs.existsSync(getBackupDirectoryPath())) {
+    fs.mkdirSync(getBackupDirectoryPath(), { recursive: true });
   }
 
   try {
