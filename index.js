@@ -1,8 +1,9 @@
-require("dotenv").config();
 const { exec } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const { createTunnel } = require("tunnel-ssh");
+
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 function getBackupDirectoryPath() {
   const backupDirectory = process.env.BACKUP_DIRECTORY || "./backups";
