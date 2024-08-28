@@ -2,6 +2,7 @@ const { exec } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const { createTunnel } = require("tunnel-ssh");
+const axios = require("axios");
 
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
@@ -147,11 +148,31 @@ async function backupAllDatabases() {
       console.log("SSH tunnel closed.");
     }
 
+    await sendSlackMessage("Backup process completed successfully.");
+
     // Exit the script
     process.exit(0);
   } catch (error) {
+    await sendSlackMessage(
+      "Backup process failed. Check the logs for details."
+    );
     console.error("Failed to start backup process:", error);
     process.exit(1);
+  }
+}
+
+async function sendSlackMessage(message) {
+  if (!process.env.SLACK_WEBHOOK_URL) {
+    return;
+  }
+
+  try {
+    await axios.post(process.env.SLACK_WEBHOOK_URL, {
+      text: message,
+    });
+    console.log("Slack message sent successfully.");
+  } catch (error) {
+    console.error("Failed to send Slack message:", error);
   }
 }
 
