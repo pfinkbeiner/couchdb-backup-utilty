@@ -74,6 +74,24 @@ async function createSSHTunnel() {
   }
 }
 
+function getFileSizeInMB(filePath) {
+  const stats = fs.statSync(filePath);
+  return (stats.size / (1024 * 1024)).toFixed(2) + " MB";
+}
+
+function getDirectorySizeInMB(directoryPath) {
+  const files = fs.readdirSync(directoryPath);
+  let totalSize = 0;
+
+  files.forEach((file) => {
+    const filePath = path.join(directoryPath, file);
+    const stats = fs.statSync(filePath);
+    totalSize += stats.size;
+  });
+
+  return (totalSize / (1024 * 1024)).toFixed(2) + " MB";
+}
+
 function backupDatabase(baseUrl, databaseName) {
   return new Promise((resolve, reject) => {
     const url = `${baseUrl}/${databaseName}/_all_docs?include_docs=true`;
@@ -81,7 +99,7 @@ function backupDatabase(baseUrl, databaseName) {
       getBackupDirectoryPath(),
       `${databaseName}-${new Date().toISOString()}.json`
     );
-    console.log(`Backing up ${databaseName} to ${filePath}`); // Debug-Ausgabe
+    console.log(`Backing up ${databaseName} to ${filePath}`);
     const curlCommand = `curl -u ${process.env.COUCHDB_USERNAME}:${process.env.COUCHDB_PASSWORD} ${url} -o ${filePath}`;
 
     exec(curlCommand, (error, stdout, stderr) => {
@@ -90,7 +108,7 @@ function backupDatabase(baseUrl, databaseName) {
         return reject(error);
       }
       console.log(`Successfully backed up database ${databaseName}.`);
-      resolve();
+      resolve({ databaseName, filePath });
     });
   });
 }
@@ -106,7 +124,7 @@ function cleanupOldBackups() {
     }
 
     files.forEach((file) => {
-      const filePath = getBackupDirectoryPath();
+      const filePath = path.join(getBackupDirectoryPath(), file);
       fs.stat(filePath, (err, stats) => {
         if (err) {
           console.error("Failed to retrieve file info:", err);
@@ -135,20 +153,31 @@ async function backupAllDatabases() {
   try {
     const { baseUrl, tunnel } = await createSSHTunnel();
     const databases = process.env.DATABASES.split(",").map((db) => db.trim());
-    await Promise.all(
-      databases.map((dbName) => backupDatabase(baseUrl, dbName))
-    );
+    const backupDetails = [];
+
+    for (const dbName of databases) {
+      const { databaseName, filePath } = await backupDatabase(baseUrl, dbName);
+      const fileSize = getFileSizeInMB(filePath);
+      backupDetails.push(`${databaseName} was saved with ${fileSize}`);
+    }
 
     // Clean up old backups
     cleanupOldBackups();
+
+    const backupDirectorySize = getDirectorySizeInMB(getBackupDirectoryPath());
+
+    const message = `Backup completed.\n\n${backupDetails.join(
+      "\n"
+    )}\n\nEntire backup directory is now ${backupDirectorySize} big.`;
+
+    // Send Slack message
+    await sendSlackMessage(message);
 
     // Close the tunnel if one was created
     if (tunnel) {
       tunnel[0].close();
       console.log("SSH tunnel closed.");
     }
-
-    await sendSlackMessage("Backup process completed successfully.");
 
     // Exit the script
     process.exit(0);
