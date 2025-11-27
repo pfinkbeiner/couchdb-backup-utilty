@@ -92,14 +92,20 @@ function getDirectorySizeInMB(directoryPath) {
   return (totalSize / (1024 * 1024)).toFixed(2) + " MB";
 }
 
-function backupDatabase(baseUrl, databaseName) {
+// NOTE: added `withAssets` param
+function backupDatabase(baseUrl, databaseName, withAssets = false) {
   return new Promise((resolve, reject) => {
-    const url = `${baseUrl}/${databaseName}/_all_docs?include_docs=true`;
+    const attachmentsParam = withAssets ? "&attachments=true" : ""; // NEW
+    const url = `${baseUrl}/${databaseName}/_all_docs?include_docs=true${attachmentsParam}`;
     const filePath = path.join(
       getBackupDirectoryPath(),
       `${databaseName}-${new Date().toISOString()}.json`
     );
-    console.log(`Backing up ${databaseName} to ${filePath}`);
+    console.log(
+      `Backing up ${databaseName} ${
+        withAssets ? "(with attachments) " : ""
+      }to ${filePath}`
+    );
     const curlCommand = `curl -u ${process.env.COUCHDB_USERNAME}:${process.env.COUCHDB_PASSWORD} ${url} -o ${filePath}`;
 
     exec(curlCommand, (error, stdout, stderr) => {
@@ -152,11 +158,24 @@ async function backupAllDatabases() {
 
   try {
     const { baseUrl, tunnel } = await createSSHTunnel();
+
     const databases = process.env.DATABASES.split(",").map((db) => db.trim());
+
+    const dbsWithAssetsEnv = process.env.DATABASES_WITH_ATTACHMENTS || "";
+    const databasesWithAssets = dbsWithAssetsEnv
+      .split(",")
+      .map((db) => db.trim())
+      .filter(Boolean);
+
     const backupDetails = [];
 
     for (const dbName of databases) {
-      const { databaseName, filePath } = await backupDatabase(baseUrl, dbName);
+      const withAssets = databasesWithAssets.includes(dbName); // NEW
+      const { databaseName, filePath } = await backupDatabase(
+        baseUrl,
+        dbName,
+        withAssets
+      );
       const fileSize = getFileSizeInMB(filePath);
       backupDetails.push(`${databaseName} was saved with ${fileSize}`);
     }

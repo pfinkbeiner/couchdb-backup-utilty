@@ -37,27 +37,28 @@ This script is designed to back up CouchDB databases, with optional support for 
 
 The script is configured using environment variables. Below is a list of all available configuration options:
 
-| Environment Variable   | Description                                                                 | Default     | Required                                               |
-| ---------------------- | --------------------------------------------------------------------------- | ----------- | ------------------------------------------------------ |
-| `COUCHDB_HOST`         | The host address of the CouchDB instance.                                   | `127.0.0.1` | Yes                                                    |
-| `COUCHDB_PROTOCOL`     | The protocol to use (e.g., `http`, `https`).                                | `http`      | Yes                                                    |
-| `COUCHDB_PORT`         | The port on which CouchDB is running.                                       | `5984`      | Yes                                                    |
-| `COUCHDB_USERNAME`     | The username for CouchDB authentication.                                    |             | Yes                                                    |
-| `COUCHDB_PASSWORD`     | The password for CouchDB authentication.                                    |             | Yes                                                    |
-| `SSH_ENABLED`          | Enable SSH tunneling (`1` for enabled, `0` for disabled).                   | `0`         | Yes                                                    |
-| `SSH_HOST`             | The SSH server's host address.                                              |             | If SSH is enabled                                      |
-| `SSH_PORT`             | The SSH server's port.                                                      | `22`        | If SSH is enabled                                      |
-| `SSH_USERNAME`         | The username for SSH authentication.                                        | `root`      | If SSH is enabled and no private key is provided       |
-| `SSH_PASSWORD`         | The password for SSH authentication.                                        |             | If SSH is enabled and no private key is provided       |
-| `SSH_PRIVATE_KEY_PATH` | Path to the SSH private key file.                                           |             | If SSH is enabled and no username/password is provided |
-| `FORWARD_SRC_HOST`     | The local address for the forwarded port.                                   | `127.0.0.1` | Yes                                                    |
-| `FORWARD_SRC_PORT`     | The local port for the forwarded connection.                                | `5999`      | Yes                                                    |
-| `FORWARD_DST_HOST`     | The remote address on the SSH server to forward to.                         | `127.0.0.1` | Yes                                                    |
-| `FORWARD_DST_PORT`     | The remote port on the SSH server to forward to (typically CouchDB's port). | `5984`      | Yes                                                    |
-| `DATABASES`            | Comma-separated list of CouchDB database names to back up.                  |             | Yes                                                    |
-| `DATA_RETENTION_DAYS`  | Number of days to retain backup files before deletion.                      | `14`        | Yes                                                    |
-| `BACKUP_DIRECTORY`     | Directory where backup files will be stored.                                | `./backups` | Yes                                                    |
-| `SLACK_WEBHOOK_URL`    | Slack webhook URL for sending notifications.                                |             | No                                                     |
+| Environment Variable         | Description                                                                                            | Default     | Required                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------ | ----------- | ------------------------------------------------------ |
+| `COUCHDB_HOST`               | The host address of the CouchDB instance.                                                              | `127.0.0.1` | Yes                                                    |
+| `COUCHDB_PROTOCOL`           | The protocol to use (e.g., `http`, `https`).                                                           | `http`      | Yes                                                    |
+| `COUCHDB_PORT`               | The port on which CouchDB is running.                                                                  | `5984`      | Yes                                                    |
+| `COUCHDB_USERNAME`           | The username for CouchDB authentication.                                                               |             | Yes                                                    |
+| `COUCHDB_PASSWORD`           | The password for CouchDB authentication.                                                               |             | Yes                                                    |
+| `SSH_ENABLED`                | Enable SSH tunneling (`1` for enabled, `0` for disabled).                                              | `0`         | Yes                                                    |
+| `SSH_HOST`                   | The SSH server's host address.                                                                         |             | If SSH is enabled                                      |
+| `SSH_PORT`                   | The SSH server's port.                                                                                 | `22`        | If SSH is enabled                                      |
+| `SSH_USERNAME`               | The username for SSH authentication.                                                                   | `root`      | If SSH is enabled and no private key is provided       |
+| `SSH_PASSWORD`               | The password for SSH authentication.                                                                   |             | If SSH is enabled and no private key is provided       |
+| `SSH_PRIVATE_KEY_PATH`       | Path to the SSH private key file.                                                                      |             | If SSH is enabled and no username/password is provided |
+| `FORWARD_SRC_HOST`           | The local address for the forwarded port.                                                              | `127.0.0.1` | Yes                                                    |
+| `FORWARD_SRC_PORT`           | The local port for the forwarded connection.                                                           | `5999`      | Yes                                                    |
+| `FORWARD_DST_HOST`           | The remote address on the SSH server to forward to.                                                    | `127.0.0.1` | Yes                                                    |
+| `FORWARD_DST_PORT`           | The remote port on the SSH server to forward to (typically CouchDB's port).                            | `5984`      | Yes                                                    |
+| `DATABASES`                  | Comma-separated list of CouchDB database names to back up.                                             |             | Yes                                                    |
+| `DATABASES_WITH_ATTACHMENTS` | Comma-separated list of databases that should be backed up **with full attachments** instead of stubs. |             | No                                                     |
+| `DATA_RETENTION_DAYS`        | Number of days to retain backup files before deletion.                                                 | `14`        | Yes                                                    |
+| `BACKUP_DIRECTORY`           | Directory where backup files will be stored.                                                           | `./backups` | Yes                                                    |
+| `SLACK_WEBHOOK_URL`          | Slack webhook URL for sending notifications.                                                           |             | No                                                     |
 
 ## Example `.env` File
 
