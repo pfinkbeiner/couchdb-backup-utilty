@@ -92,7 +92,6 @@ function getDirectorySizeInMB(directoryPath) {
   return (totalSize / (1024 * 1024)).toFixed(2) + " MB";
 }
 
-// NOTE: added `withAssets` param
 function backupDatabase(baseUrl, databaseName, withAssets = false) {
   return new Promise((resolve, reject) => {
     const attachmentsParam = withAssets ? "&attachments=true" : ""; // NEW
@@ -106,7 +105,7 @@ function backupDatabase(baseUrl, databaseName, withAssets = false) {
         withAssets ? "(with attachments) " : ""
       }to ${filePath}`
     );
-    const curlCommand = `curl -u ${process.env.COUCHDB_USERNAME}:${process.env.COUCHDB_PASSWORD} ${url} -o ${filePath}`;
+    const curlCommand = `curl -u "${process.env.COUCHDB_USERNAME}:${process.env.COUCHDB_PASSWORD}" "${url}" -o "${filePath}"`;
 
     exec(curlCommand, (error, stdout, stderr) => {
       if (error) {
